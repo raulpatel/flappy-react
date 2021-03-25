@@ -9,6 +9,8 @@ export default class App extends Component {
         const gameDisplay = document.querySelector(".game-container");
         const ground = document.querySelector(".ground-moving");
         const score = document.querySelector(".score");
+        const gameover = document.querySelector(".game-over");
+        const restart = document.querySelector(".restart");
 
         let birdLeft = 220;
         let birdBottom = 100;
@@ -43,10 +45,8 @@ export default class App extends Component {
             let obstacleBottom = Math.random() * 60;
             const obstacle = document.createElement("div");
             const topObstacle = document.createElement("div");
-            if (!isGameOver) {
-                obstacle.classList.add("obstacle");
-                topObstacle.classList.add("topObstacle");
-            }
+            obstacle.classList.add("obstacle");
+            topObstacle.classList.add("topObstacle");
             gameDisplay.appendChild(obstacle);
             gameDisplay.appendChild(topObstacle);
             obstacle.style.left = obstacleLeft + "px";
@@ -67,8 +67,9 @@ export default class App extends Component {
                     //gameDisplay.removeChild(topObstacle);
                 }
                 if ((obstacleLeft > 200 && obstacleLeft < 280 && birdLeft === 220 && (birdBottom < obstacleBottom + 153
-                    || birdBottom > obstacleBottom + gap - 200)) || birdBottom <= 8) {
+                    || birdBottom > obstacleBottom + gap - 200)) || birdBottom <= 20) {
                     clearInterval(timerId);
+                    clearInterval(gameTimerId);
                     gameOver();
                 }
             }
@@ -81,31 +82,30 @@ export default class App extends Component {
         }
         generateObstacle();
         function restartGame(e) {
+            gameover.textContent = "";
+            restart.textContent = "";
+            birdLeft = 220;
+            birdBottom = 100;
+            isGameOver = false;
+            currScore = -1;
+            document.addEventListener("keyup", control);
+            gameTimerId = setInterval(startGame, 20);
+            generateObstacle();
+        }
+        function restartHelp(e) {
             if (e.keyCode === 32) {
-                document.removeEventListener('keyup', restartGame);
-                const gameover = document.querySelector(".game-over");
-                const restart = document.querySelector(".restart");
-                gameover.textContent = "";
-                restart.textContent = "";
-                birdLeft = 220;
-                birdBottom = 100;
-                isGameOver = false;
-                currScore = -1;
-                document.addEventListener("keyup", control);
-                gameTimerId = setInterval(startGame, 20);
-                generateObstacle();
+                document.removeEventListener('keyup', restartHelp);
+                setTimeout(restartGame, 3000);
             }
         }
         function gameOver() {
-            clearInterval(gameTimerId);
+            // clearInterval(gameTimerId);
             console.log("game over");
             isGameOver = true;
             if (currScore > maxScore) maxScore = currScore;
             score.textContent = "";
-            const gameover = document.querySelector(".game-over");
             gameover.textContent = "Game Over! \n\n Final Score: \n            " + currScore
                                     + "\nHigh Score: \n            " + maxScore;
-            const restart = document.querySelector(".restart");
             restart.textContent = "(press space to restart)";
             document.removeEventListener("keyup", control);
             ground.classList.add("ground");
@@ -113,10 +113,10 @@ export default class App extends Component {
             const obstacles = document.querySelectorAll(".obstacle");
             const tops = document.querySelectorAll(".topObstacle");
             for (let i = 0; i < obstacles.length; i++) {
-                obstacles[i].remove();
-                tops[i].remove();
+                obstacles[i].parentElement.removeChild(obstacles[i]);
+                tops[i].parentElement.removeChild(tops[i]);
             }
-            document.addEventListener('keyup', restartGame);
+            document.addEventListener('keyup', restartHelp);
         }
     }
 
